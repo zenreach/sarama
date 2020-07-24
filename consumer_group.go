@@ -148,6 +148,7 @@ func (c *consumerGroup) Consume(ctx context.Context, topics []string, handler Co
 	// Ensure group is not closed
 	select {
 	case <-c.closed:
+		Logger.Println("group already closed in consumerGroup.Consume()")
 		return ErrClosedConsumerGroup
 	default:
 	}
@@ -157,32 +158,45 @@ func (c *consumerGroup) Consume(ctx context.Context, topics []string, handler Co
 
 	// Quick exit when no topics are provided
 	if len(topics) == 0 {
+		Logger.Println("len(topics) == 0 in consumerGroup.Consume()")
 		return fmt.Errorf("no topics provided")
 	}
 
 	// Refresh metadata for requested topics
+	Logger.Println("consumerGroup.Consume(): refreshing metadata")
 	if err := c.client.RefreshMetadata(topics...); err != nil {
+		Logger.Printf("client.RefreshMetadata error in consumerGroup.Consume(): %s\n", err.Error())
 		return err
 	}
 
 	// Init session
+	Logger.Println("consumerGroup.Consume(): init session")
 	sess, err := c.newSession(ctx, topics, handler, c.config.Consumer.Group.Rebalance.Retry.Max)
 	if err == ErrClosedClient {
+		Logger.Println("newSession ErrClosedClient consumerGroup.Consume()")
 		return ErrClosedConsumerGroup
 	} else if err != nil {
+		Logger.Printf("newSession error in consumerGroup.Consume(): %s\n", err.Error())
 		return err
 	}
 
 	// loop check topic partition numbers changed
 	// will trigger rebalance when any topic partitions number had changed
 	// avoid Consume function called again that will generate more than loopCheckPartitionNumbers coroutine
+	Logger.Println("consumerGroup.Consume(): starting loop check partition numbers goroutine")
 	go c.loopCheckPartitionNumbers(topics, sess)
 
 	// Wait for session exit signal
 	<-sess.ctx.Done()
+	Logger.Println("consumerGroup.Consume(): session context done")
 
 	// Gracefully release session claims
-	return sess.release(true)
+	err = sess.release(true)
+	if err != nil {
+		Logger.Printf("sess.release error in consumerGroup.Consume(): %s\n", err.Error())
+	}
+	Logger.Println("consumerGroup.Consume(): session released")
+	return err
 }
 
 func (c *consumerGroup) retryNewSession(ctx context.Context, topics []string, handler ConsumerGroupHandler, retries int, refreshCoordinator bool) (*consumerGroupSession, error) {
