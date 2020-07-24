@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"runtime/debug"
 	"sort"
 	"strconv"
 	"strings"
@@ -245,6 +246,7 @@ func (b *Broker) Close() error {
 	b.unregisterMetrics()
 
 	if err == nil {
+		Logger.Printf("Stack on Broker.Close(): %s\n", string(debug.Stack()))
 		Logger.Printf("Closed connection to broker %s\n", b.addr)
 	} else {
 		Logger.Printf("Error while closing connection to broker %s: %s\n", b.addr, err)
