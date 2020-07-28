@@ -228,6 +228,7 @@ func (c *consumerGroup) newSession(ctx context.Context, topics []string, handler
 
 	// Join consumer group
 	join, err := c.joinGroupRequest(coordinator, topics)
+	Logger.Println("Join group request result:", join, err)
 	if err != nil {
 		_ = coordinator.Close()
 		return nil, err
