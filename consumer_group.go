@@ -145,6 +145,7 @@ func (c *consumerGroup) Close() (err error) {
 
 // Consume implements ConsumerGroup.
 func (c *consumerGroup) Consume(ctx context.Context, topics []string, handler ConsumerGroupHandler) error {
+	Logger.Println("consuming")
 	// Ensure group is not closed
 	select {
 	case <-c.closed:
@@ -169,6 +170,7 @@ func (c *consumerGroup) Consume(ctx context.Context, topics []string, handler Co
 		return err
 	}
 
+	Logger.Println("new session")
 	// Init session
 	Logger.Println("consumerGroup.Consume(): init session")
 	sess, err := c.newSession(ctx, topics, handler, c.config.Consumer.Group.Rebalance.Retry.Max)
@@ -180,6 +182,7 @@ func (c *consumerGroup) Consume(ctx context.Context, topics []string, handler Co
 		return err
 	}
 
+	Logger.Println("new session success")
 	// loop check topic partition numbers changed
 	// will trigger rebalance when any topic partitions number had changed
 	// avoid Consume function called again that will generate more than loopCheckPartitionNumbers coroutine
@@ -202,17 +205,20 @@ func (c *consumerGroup) Consume(ctx context.Context, topics []string, handler Co
 func (c *consumerGroup) retryNewSession(ctx context.Context, topics []string, handler ConsumerGroupHandler, retries int, refreshCoordinator bool) (*consumerGroupSession, error) {
 	select {
 	case <-c.closed:
+		Logger.Println("retry new session closed channel")
 		return nil, ErrClosedConsumerGroup
 	case <-time.After(c.config.Consumer.Group.Rebalance.Retry.Backoff):
+		Logger.Println("retry new session backoff time tick")
 	}
 
 	if refreshCoordinator {
 		err := c.client.RefreshCoordinator(c.groupID)
 		if err != nil {
+			Logger.Println("retry new session self call with refresh coordinator")
 			return c.retryNewSession(ctx, topics, handler, retries, true)
 		}
 	}
-
+	Logger.Println("retry new session create new session")
 	return c.newSession(ctx, topics, handler, retries-1)
 }
 
@@ -222,7 +228,7 @@ func (c *consumerGroup) newSession(ctx context.Context, topics []string, handler
 		if retries <= 0 {
 			return nil, err
 		}
-
+		Logger.Println("retry new session 1")
 		return c.retryNewSession(ctx, topics, handler, retries, true)
 	}
 
@@ -242,13 +248,13 @@ func (c *consumerGroup) newSession(ctx context.Context, topics []string, handler
 		if retries <= 0 {
 			return nil, join.Err
 		}
-
+		Logger.Println("retry new session 2")
 		return c.retryNewSession(ctx, topics, handler, retries, true)
 	case ErrRebalanceInProgress: // retry after backoff
 		if retries <= 0 {
 			return nil, join.Err
 		}
-
+		Logger.Println("retry new session 2")
 		return c.retryNewSession(ctx, topics, handler, retries, false)
 	default:
 		return nil, join.Err

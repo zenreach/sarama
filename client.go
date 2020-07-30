@@ -231,11 +231,13 @@ func (client *client) Close() error {
 	defer client.lock.Unlock()
 	Logger.Println("Closing Client")
 
-	for _, broker := range client.brokers {
+	for i, broker := range client.brokers {
+		Logger.Println("broker", i, broker)
 		safeAsyncClose(broker)
 	}
 
-	for _, broker := range client.seedBrokers {
+	for i, broker := range client.seedBrokers {
+		Logger.Println("seed broker", i, broker)
 		safeAsyncClose(broker)
 	}
 
