@@ -232,10 +232,14 @@ func (c *consumerGroup) newSession(ctx context.Context, topics []string, handler
 		return c.retryNewSession(ctx, topics, handler, retries, true)
 	}
 
+	Logger.Println("coordinator", coordinator)
 	// Join consumer group
 	join, err := c.joinGroupRequest(coordinator, topics)
 	if err != nil {
-		_ = coordinator.Close()
+		Logger.Println("join group request err", err)
+		if closeErr := coordinator.Close(); closeErr != nil {
+			Logger.Println("coordinator.Close()", closeErr)
+		}
 		return nil, err
 	}
 	switch join.Err {
