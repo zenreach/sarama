@@ -389,9 +389,8 @@ func (b *Broker) FetchOffset(request *OffsetFetchRequest) (*OffsetFetchResponse,
 
 //JoinGroup returns a join group response or error
 func (b *Broker) JoinGroup(request *JoinGroupRequest) (*JoinGroupResponse, error) {
-	fmt.Println("JoinGroup")
 	response := new(JoinGroupResponse)
-	fmt.Println("new(JoinGroupResponse)", response)
+
 	err := b.sendAndReceive(request, response)
 	if err != nil {
 		return nil, err
@@ -760,7 +759,6 @@ func (b *Broker) send(rb protocolBody, promiseResponse bool, responseHeaderVersi
 }
 
 func (b *Broker) sendAndReceive(req protocolBody, res protocolBody) error {
-	Logger.Println("sendAndReceive:", time.Now().UTC)
 	responseHeaderVersion := int16(-1)
 	if res != nil {
 		responseHeaderVersion = res.headerVersion()
@@ -768,7 +766,6 @@ func (b *Broker) sendAndReceive(req protocolBody, res protocolBody) error {
 
 	promise, err := b.send(req, res != nil, responseHeaderVersion)
 	if err != nil {
-		Logger.Println("send err", err, time.Now().UTC)
 		return err
 	}
 
@@ -780,7 +777,6 @@ func (b *Broker) sendAndReceive(req protocolBody, res protocolBody) error {
 	case buf := <-promise.packets:
 		return versionedDecode(buf, res, req.version())
 	case err = <-promise.errors:
-		Logger.Println("read err", err, time.Now().UTC)
 		return err
 	}
 }
