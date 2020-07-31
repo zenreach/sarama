@@ -330,7 +330,9 @@ func (c *consumerGroup) joinGroupRequest(coordinator *Broker, topics []string) (
 		SessionTimeout: int32(c.config.Consumer.Group.Session.Timeout / time.Millisecond),
 		ProtocolType:   "consumer",
 	}
+	fmt.Println("joinGroupRequest")
 	if c.config.Version.IsAtLeast(V0_10_1_0) {
+		fmt.Println("if c.config.Version.IsAtLeast(V0_10_1_0) {")
 		req.Version = 1
 		req.RebalanceTimeout = int32(c.config.Consumer.Group.Rebalance.Timeout / time.Millisecond)
 	}
@@ -345,10 +347,12 @@ func (c *consumerGroup) joinGroupRequest(coordinator *Broker, topics []string) (
 		UserData: userData,
 	}
 	strategy := c.config.Consumer.Group.Rebalance.Strategy
+	fmt.Println("req.AddGroupProtocolMetadata")
 	if err := req.AddGroupProtocolMetadata(strategy.Name(), meta); err != nil {
+		fmt.Println("req.AddGroupProtocolMetadata", err)
 		return nil, err
 	}
-
+	fmt.Println("coordinator.JoinGroup")
 	return coordinator.JoinGroup(req)
 }
 
