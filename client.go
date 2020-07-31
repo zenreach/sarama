@@ -131,7 +131,7 @@ type client struct {
 // be retrieved from any of the given broker addresses, the client is not created.
 func NewClient(addrs []string, conf *Config) (Client, error) {
 	Logger.Println("Initializing new client")
-	Logger.Println(conf)
+
 	if conf == nil {
 		conf = NewConfig()
 	}
