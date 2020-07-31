@@ -209,7 +209,6 @@ func (b *Broker) Open(conf *Config) error {
 		} else {
 			Logger.Printf("Connected to broker at %s (unregistered)\n", b.addr)
 		}
-
 		go withRecover(b.responseReceiver)
 	})
 
@@ -390,9 +389,9 @@ func (b *Broker) FetchOffset(request *OffsetFetchRequest) (*OffsetFetchResponse,
 
 //JoinGroup returns a join group response or error
 func (b *Broker) JoinGroup(request *JoinGroupRequest) (*JoinGroupResponse, error) {
-	Logger.Println("JoinGroup")
+	fmt.Println("JoinGroup")
 	response := new(JoinGroupResponse)
-
+	fmt.Println("new(JoinGroupResponse)", response)
 	err := b.sendAndReceive(request, response)
 	if err != nil {
 		return nil, err

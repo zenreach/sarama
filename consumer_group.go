@@ -349,7 +349,7 @@ func (c *consumerGroup) joinGroupRequest(coordinator *Broker, topics []string) (
 	strategy := c.config.Consumer.Group.Rebalance.Strategy
 	Logger.Println("req.AddGroupProtocolMetadata")
 	if err := req.AddGroupProtocolMetadata(strategy.Name(), meta); err != nil {
-		Logger.Println("req.AddGroupProtocolMetadata", err)
+		fmt.Println("req.AddGroupProtocolMetadata", err)
 		return nil, err
 	}
 	Logger.Println("coordinator.JoinGroup")
