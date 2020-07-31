@@ -1,7 +1,6 @@
 package sarama
 
 import (
-	"encoding/json"
 	"math/rand"
 	"sort"
 	"sync"
@@ -132,8 +131,8 @@ type client struct {
 // be retrieved from any of the given broker addresses, the client is not created.
 func NewClient(addrs []string, conf *Config) (Client, error) {
 	Logger.Println("Initializing new client")
-	confJson, _ := json.Marshal(conf)
-	Logger.Println(string(confJson))
+	Logger.Println("read timeout:", conf.Net.ReadTimeout)
+	conf.Net.ReadTimeout = 120
 	if conf == nil {
 		conf = NewConfig()
 	}
