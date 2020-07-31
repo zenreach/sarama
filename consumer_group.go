@@ -240,7 +240,7 @@ func (c *consumerGroup) newSession(ctx context.Context, topics []string, handler
 		if closeErr := coordinator.Close(); closeErr != nil {
 			Logger.Println("coordinator.Close()", closeErr)
 		}
-		return nil, err
+		return c.retryNewSession(ctx, topics, handler, retries, false)
 	}
 	switch join.Err {
 	case ErrNoError:
